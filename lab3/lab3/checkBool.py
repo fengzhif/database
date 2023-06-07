@@ -15,6 +15,15 @@ def checkBunds(data, goal):
     return abs(goal - cnt) < 1e-9
 
 
+def checkId(data):
+    values = set()
+    for te_dict in data:
+        value = te_dict['工号']
+        if value in values:
+            return False
+        values.add(value)
+    return True
+
 def checkCourse(data, goal):
     cnt = 0
     for te_dict in data:

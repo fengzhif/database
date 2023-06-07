@@ -47,7 +47,7 @@ class course:
             raise Exception(e)
         cursor.close()
 
-    def delete(self, cou_id: string, te_id: string,te_time:int):
+    def delete(self, cou_id: string, te_id: string, te_time: int):
         cursor = self.db.cursor()
         sql1 = "select * from 课程 where 课程号='%s' " % cou_id
         cursor.execute(sql1)
@@ -67,15 +67,21 @@ class course:
             raise Exception('error:该教师不是课程的唯一主讲人，直接删除会导致学时不一致，请通过“查看&修改”完成教师的删除')
         cursor.close()
 
-    def update(self, data: dict):
-        self.check(data)
+    def update_all(self, data: dict, te_list: List[dict], te_list_new: List[dict]):
         cursor = self.db.cursor()
-        sql = "update 项目 set 项目号='%s',项目名称='%s',项目来源='%s',项目类型=%d,总经费=%f ," \
-              "开始年份=%d,结束年份=%d where 项目号='%s' " % \
-              (data['项目号'], data['项目名称'], data['项目来源'], int(data['项目类型']),
-               float(data['总经费']), int(data['开始年份']), int(data['结束年份']), data['项目号'])
         try:
-            cursor.execute(sql)
+            for te in te_list:
+                sql2 = "delete from 主讲课程 where 课程号='%s' and 工号='%s'" % (data['课程号'], te['工号'])
+                cursor.execute(sql2)
+            for index, te in enumerate(te_list_new):
+                sql0 = "select * from 教师 where 工号='%s'" % te['工号']
+                cursor.execute(sql0)
+                tmp = cursor.fetchone()
+                if tmp is None:
+                    raise Exception('error:第%d教师对应工号不存在，请检查工号输入' % (index + 1))
+                sql3 = "insert into 主讲课程 values('%s','%s',%d,%d,%d)" % \
+                       (te['工号'], te['课程号'], int(te['年份']), int(te['学期']), int(te['承担学时']))
+                cursor.execute(sql3)
             self.db.commit()
         except Exception as e:
             self.db.rollback()
@@ -103,7 +109,7 @@ class course:
 
     def teacher_search_all(self, cou_id: string, cou_year: int, cou_term: int):
         sql = "select * from 主讲课程 where 课程号='%s' and 年份=%d and 学期=%d " % (
-        cou_id, int(cou_year), int(cou_term))
+            cou_id, int(cou_year), int(cou_term))
         cursor = self.db.cursor()
         cursor.execute(sql)
 

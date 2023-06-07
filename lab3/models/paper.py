@@ -17,7 +17,7 @@ class paper:
     # 类型    int
     # 级别    int
     def check(self, data: dict):
-        if re.match("^[0-9A-Z]{5}$", data['序号']) is None:
+        if re.match("^[0-9A-Za-z]{5}$", data['序号']) is None:
             raise Exception('error:序号格式有误')
         elif len(data['论文名称']) > 256:
             raise Exception('error:论文名称过长')

@@ -30,8 +30,10 @@ urlpatterns = [
     path('project/search/', views.project_search),
     path('project/insert', views.project_insert),
     re_path(r'^project/[a-zA-Z0-9]{5}/update$', views.project_update),
-    #course
+    # course
     path('course/search/', views.course_search),
     path('course/insert', views.course_insert),
-    re_path(r'^course/[a-zA-Z0-9]{10}/update$', views.course_update)
+    re_path(r'^course/[a-zA-Z0-9]{10}/update$', views.course_update),
+    # statistics
+    path('statistics/', views.statistics_search)
 ]

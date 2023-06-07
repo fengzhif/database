@@ -1,10 +1,208 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <title>$Title$</title>
+    <title>信息查询</title>
+    <!-- Required meta tags -->
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+
+    <!-- Bootstrap CSS -->
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css"
+          integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" crossorigin="anonymous">
+
+    <!-- Optional JavaScript -->
+    <!-- jQuery first, then Popper.js, then Bootstrap JS -->
+    <script src="http://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js" type="text/javascript"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.7/umd/popper.min.js"
+            integrity="sha384-UO2eT0CpHqdSJQ6hJty5KVphtPhzWj9WO1clHTMGa3JDZwrnQq4sF86dIHNDz0W1"
+            crossorigin="anonymous"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js"
+            integrity="sha384-JjSmVgyd0p3pXB1rRibZUAYoIIy6OrQ6VrjIEaFf/nJGzIxFDsf4x0xIM+B07jRM"
+            crossorigin="anonymous"></script>
+    <style>
+    .bottom-center {
+      position: fixed;
+      left: 50%;
+      bottom: 0;
+      transform: translateX(-50%);
+      text-align: center;
+    }
+
+  .custom-border {
+    border: 1px solid #ccc;
+    padding: 2px;
+    border-radius: 5px;
+  }
+  .fixed-width-s {
+    display: inline-block;
+    width: 166px; /* 设置固定的宽度 */
+    white-space: nowrap;
+  }
+
+  .fixed-width-l {
+    display: inline-block;
+    width: 200px; /* 设置固定的宽度 */
+    white-space: nowrap;
+  }
+
+
+
+    </style>
 </head>
 <body>
-$END$
+<nav class="navbar navbar-expand-lg navbar-light bg-light">
+    <a class="navbar-brand" href="/index">主页</a>
+    <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarNav"
+            aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+        <span class="navbar-toggler-icon"></span>
+    </button>
+    <div class="collapse navbar-collapse" id="navbarNav">
+        <ul class="navbar-nav ml-auto">
+            <li class="nav-item">
+                <a class="nav-link" href="/paper/search" style="color: green;">论文发表</a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" href="/project/search" style="color: green;">项目承担</a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" href="/course/search" style="color: green;">课程主讲</a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" href="" style="color: blue;">查询统计</a>
+            </li>
+        </ul>
+    </div>
+</nav>
+<div class="container">
+    <br><br>
+    <h1>信息查询</h1>
+    <br>
+    <form class="form-inline" method="post">
+        {% csrf_token %}
+        <div class="form-group">
+            <input type="text" name="query" class="form-control" placeholder="教师工号/姓名/课程名" value="{{error1}}{{error5}}">
+            &nbsp;&nbsp;&nbsp;
+            <input type="submit" name="button2" value="教师查询" class="btn btn-primary">
+            &nbsp;&nbsp;
+            <input type="submit" name="button3" value="课程查询" class="btn btn-primary">
+            &nbsp;&nbsp;
+            <input type="text" name="start" class="form-control" placeholder="开始年份" value="{{error2}}{{error4}}">
+            &nbsp;&nbsp;
+            <input type="text" name="end" class="form-control" placeholder="结束年份" value="{{error3}}">
+            &nbsp;&nbsp;
+            <input type="submit" name="button1" value="综合查询" class="btn btn-primary">
+            &nbsp;&nbsp;&nbsp;
+            <a href="/index">
+                <button type="button" class="btn btn-secondary">返回</button>
+            </a>
+        </div>
+    </form>
+    <br>
+    <div>
+        {% if type == 'teacher' %}
+        {% for teacher in list %}
+        <div class="custom-border">
+            <p style="margin-top:9px;margin-bottom:9px">
+                <span class="fixed-width-s"> 教师工号:&nbsp;{{teacher.工号}}</span>
+                <span class="fixed-width-l"> 姓名:&nbsp;{{teacher.姓名}}</span>
+                <span class="fixed-width-s"> 性别:&nbsp;{% if teacher.性别 == 1 %}男
+                {% elif teacher.性别 == 0 %}女{% endif %}</span>
+                <span class="fixed-width-l">
+                    职称:&nbsp;{% if teacher.职称 == 1 %}博士后
+                {% elif teacher.职称 == 2 %}助教
+                {% elif teacher.职称 == 3 %}讲师
+                {% elif teacher.职称 == 4 %}副教授
+                {% elif teacher.职称 == 5 %}特任教授
+                {% elif teacher.职称 == 6 %}教授
+                {% elif teacher.职称 == 7 %}助理研究员
+                {% elif teacher.职称 == 8 %}特任副研究员
+                {% elif teacher.职称 == 9 %}副研究员
+                {% elif teacher.职称 == 10 %}特任研究员
+                {% elif teacher.职称 == 11 %}研究员
+                {% endif %}</span>
+            </p>
+        </div>
+        {% endfor %}
+        {% elif type == 'course' %}
+        {% for course in list %}
+        <div class="custom-border">
+            <p style="margin-top:9px;margin-bottom:9px">
+                <span class="fixed-width-s"> 课程号:&nbsp;{{course.课程号}}</span>
+                <span class="fixed-width-l"> 课程名称:&nbsp;{{course.课程名称}}</span>
+                <span class="fixed-width-s"> 学时数:&nbsp;{{course.学时数}}</span>
+                <span class="fixed-width-l"> 课程性质:&nbsp;{% if course.课程性质 == 1 %}本科生课程{% else %}研究生课程{% endif %}</span>
+            </p>
+        </div>
+        {% endfor %}
+        {% elif type == 'all' %}
+        <h5 style="font-weight:bold;">教师基本信息</h5>
+        <hr style="border-top: 2px solid ;">
+        <p style="margin-top:9px;margin-bottom:9px">
+            <span class="fixed-width-s"> 教师工号:&nbsp;{{teacher.工号}}</span>
+            <span class="fixed-width-l"> 姓名:&nbsp;{{teacher.姓名}}</span>
+            <span class="fixed-width-s"> 性别:&nbsp;{% if teacher.性别 == 1 %}男
+                {% elif teacher.性别 == 0 %}女{% endif %}</span>
+            <span class="fixed-width-l">
+                    职称:&nbsp;{% if teacher.职称 == 1 %}博士后
+                {% elif teacher.职称 == 2 %}助教
+                {% elif teacher.职称 == 3 %}讲师
+                {% elif teacher.职称 == 4 %}副教授
+                {% elif teacher.职称 == 5 %}特任教授
+                {% elif teacher.职称 == 6 %}教授
+                {% elif teacher.职称 == 7 %}助理研究员
+                {% elif teacher.职称 == 8 %}特任副研究员
+                {% elif teacher.职称 == 9 %}副研究员
+                {% elif teacher.职称 == 10 %}特任研究员
+                {% elif teacher.职称 == 11 %}研究员
+                {% endif %}</span>
+        </p>
+        <h5 style="font-weight:bold;">教学情况</h5>
+        <hr style="border-top: 2px solid ;">
+        {% for course in course_list %}
+        <p style="margin-top:9px;margin-bottom:9px">
+            <span class="fixed-width-s"> 课程号:&nbsp;{{course.课程号}}</span>
+            <span class="fixed-width-l"> 课程名称:&nbsp;{{course.课程名称}}</span>
+            <span class="fixed-width-s"> 主讲学时:&nbsp;{{course.承担学时}}</span>
+            <span class="fixed-width-l"> 学期:&nbsp;{% if course.学期 == 1 %}{{course.年份}}&nbsp;春
+                    {% elif course.学期 == 2 %}{{course.年份}}&nbsp;夏
+                    {% elif course.学期 == 3 %}{{course.年份}}&nbsp;秋
+                    {% endif %}
+                </span>
+        </p>
+        {% endfor %}
+        <h5 style="font-weight:bold;">发表论文情况</h5>
+        <hr style="border-top: 2px solid ;">
+        {% for paper in paper_list %}
+        <p style="margin-top:9px;margin-bottom:9px">
+            {{forloop.counter}}.&nbsp;&nbsp;{{paper.论文名称}},&nbsp;{{paper.发表源}},&nbsp;{{paper.发表年份}},
+            {% if paper.级别 == 1 %}CCF-A,&nbsp;
+            {% elif paper.级别 == 2 %}CCF-B,&nbsp;
+            {% elif paper.级别 == 3 %}CCF-C,&nbsp;
+            {% elif paper.级别 == 4 %}中文CCF-A,&nbsp;
+            {% elif paper.级别 == 5 %}中文CCF-B,&nbsp;
+            {% endif %}排名第{{paper.排名}},&nbsp;
+            {% if paper.是否通讯作者 == 1 %}通讯作者&nbsp;
+            {% else %} {% endif %}
+        </p>
+        {% endfor %}
+        <h5 style="font-weight:bold;">承担项目情况</h5>
+        <hr style="border-top: 2px solid ;">
+        {% for project in project_list %}
+        <p style="margin-top:9px;margin-bottom:9px">
+            {{forloop.counter}}.&nbsp;&nbsp;{{project.项目名称}},&nbsp;{{project.项目来源}},&nbsp;
+            {% if project.项目类型 == 1 %}国家级项目,&nbsp;
+            {% elif project.项目类型 == 2 %}省部级项目,&nbsp;
+            {% elif project.项目类型 == 3 %}市厅级项目,&nbsp;
+            {% elif project.项目类型 == 4 %}企业合作项目,&nbsp;
+            {% elif project.项目类型 == 5 %}其他类型项目,&nbsp;
+            {% endif %}
+            {{project.开始年份}}-{{project.结束年份}},&nbsp;总经费:&nbsp;{{project.总经费}},&nbsp;承担经费:&nbsp;{{project.承担经费}}&nbsp;
+        </p>
+        {% endfor %}
+        {% endif %}
+    </div>
+
+    <div class="bottom-center"><p class="mt-5 mb-3 text-muted">zxy&copy; 2023</p></div>
+
 </body>
 </html>

@@ -104,6 +104,33 @@ class project:
             raise Exception(e)
         cursor.close()
 
+    def update_all(self, data: dict, te_list: List[dict], te_list_new: List[dict]):
+        self.check(data)
+        cursor = self.db.cursor()
+        sql1 = "update 项目 set 项目名称='%s',项目来源='%s',项目类型=%d,总经费=%f ," \
+               "开始年份=%d,结束年份=%d where 项目号='%s' " % \
+               (data['项目名称'], data['项目来源'], int(data['项目类型']),
+                float(data['总经费']), int(data['开始年份']), int(data['结束年份']), data['项目号'])
+        try:
+            cursor.execute(sql1)
+            for te in te_list:
+                sql2 = "delete from 承担项目 where 项目号='%s' and 工号='%s'" % (data['项目号'], te['工号'])
+                cursor.execute(sql2)
+            for index, te in enumerate(te_list_new):
+                sql0 = "select * from 教师 where 工号='%s'" % te['工号']
+                cursor.execute(sql0)
+                tmp = cursor.fetchone()
+                if tmp is None:
+                    raise Exception('error:第%d教师对应工号不存在，请检查工号输入' % (index + 1))
+                sql3 = "insert into 承担项目 values('%s','%s',%d,%f)" % (
+                    te['工号'], data['项目号'], int(te['排名']), float(te['承担经费']))
+                cursor.execute(sql3)
+            self.db.commit()
+        except Exception as e:
+            self.db.rollback()
+            raise Exception(e)
+        cursor.close()
+
     def search(self, id: string):
         cursor = self.db.cursor()
         sql = "select * from 项目 where 项目号='%s'" % id

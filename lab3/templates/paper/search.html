@@ -50,7 +50,7 @@
                 <a class="nav-link" href="/course/search" style="color: green;">课程主讲</a>
             </li>
             <li class="nav-item">
-                <a class="nav-link" href="" style="color: green;">查询统计</a>
+                <a class="nav-link" href="/statistics" style="color: green;">查询统计</a>
             </li>
         </ul>
     </div>
@@ -112,7 +112,7 @@
         {% for paper in paper_list %}
         <tr>
             <td>{{forloop.counter}}</td>
-            <td>{{paper.论文名称}}</td>
+            <td class="text-wrap" style="max-width: 200px;">{{paper.论文名称}}</td>
             <td>{{paper.发表源}}</td>
             <td>{{ paper.发表年份 }}</td>
             {% if paper.级别 == 1 %}

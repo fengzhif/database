@@ -10,6 +10,7 @@ from models.paper import paper
 from models.teacher import teacher
 from models.project import project
 from models.course import course
+from models.statistics import statistics
 from . import checkBool
 
 
@@ -168,6 +169,8 @@ def project_insert(request: HttpRequest):
             return HttpResponse('error:教师排名重复')
         if not checkBool.checkBunds(te_list, float(pro_information['总经费'])):
             return HttpResponse('error:经费不一致')
+        if not checkBool.checkId(te_list):
+            return HttpResponse('error:教师重复')
         pro = project()
         try:
             pro.insert(pro_information, te_list)
@@ -188,13 +191,7 @@ def project_update(request: HttpRequest):
     if request.method == 'POST':
         data = request.POST.dict()
         data['项目号'] = pro_id
-        try:
-            pro.update(data)
-        except Exception as e:
-            return HttpResponse(e)
         te_list = pro.teacher_search_all(data['项目号'])
-        for te in te_list:
-            pro.delete_teacher(data['项目号'], te['工号'])
         form_count = int(request.POST.get('form_count'))
         te_list_new = []
         for i in range(form_count):
@@ -208,12 +205,42 @@ def project_update(request: HttpRequest):
             return HttpResponse('error:教师排名重复')
         if not checkBool.checkBunds(te_list_new, float(data['总经费'])):
             return HttpResponse('error:经费不一致')
-        for te in te_list_new:
-            try:
-                pro.insert_information(data['项目号'], te)
-            except Exception as e:
-                return HttpResponse(e)
+        if not checkBool.checkId(te_list_new):
+            return HttpResponse('error:教师重复')
+        # 所有更新删除插入操作置于同一事务
+        try:
+            pro.update_all(data, te_list, te_list_new)
+        except Exception as e:
+            return HttpResponse(e)
         return HttpResponse('success')
+
+        # try:
+        #     pro.update(data)
+        # except Exception as e:
+        #     return HttpResponse(e)
+        # te_list = pro.teacher_search_all(data['项目号'])
+        # for te in te_list:
+        #     pro.delete_teacher(data['项目号'], te['工号'])
+        # form_count = int(request.POST.get('form_count'))
+        # te_list_new = []
+        # for i in range(form_count):
+        #     te = {
+        #         '工号': data[str(i) + '_id'],
+        #         '排名': data[str(i) + '_rank'],
+        #         '承担经费': data[str(i) + '_funds']
+        #     }
+        #     te_list_new.append(te)
+        # if not checkBool.checkSequence(te_list_new):
+        #     return HttpResponse('error:教师排名重复')
+        # if not checkBool.checkBunds(te_list_new, float(data['总经费'])):
+        #     return HttpResponse('error:经费不一致')
+        # for te in te_list_new:
+        #     try:
+        #         pro.insert_information(data['项目号'], te)
+        #     except Exception as e:
+        #         return HttpResponse(e)
+        # return HttpResponse('success')
+
     else:
         te_list = pro.teacher_search_all(pro_id)
         pro_information = pro.search(pro_id)
@@ -249,9 +276,9 @@ def course_search(request: HttpRequest):
     if request.method == 'POST':
         cou_id = request.POST.dict()['课程号']
         te_id = request.POST.dict()['工号']
-        te_time=request.POST.dict()['承担学时']
+        te_time = request.POST.dict()['承担学时']
         try:
-            cou.delete(cou_id, te_id,int(te_time))
+            cou.delete(cou_id, te_id, int(te_time))
         except Exception as e:
             return HttpResponse(e)
         return HttpResponse('success')
@@ -280,6 +307,8 @@ def course_insert(request: HttpRequest):
             te_list.append(te)
         if not checkBool.checkCourse(te_list, course_information['学时数']):
             return HttpResponse("error:学时不一致，该课程学时数为 '%s'" % course_information['学时数'])
+        if not checkBool.checkId(te_list):
+            return HttpResponse('error:教师重复')
         try:
             cou.insert(te_list)
         except Exception as e:
@@ -298,8 +327,6 @@ def course_update(request: HttpRequest):
         data['课程号'] = cou_id
         course_information = cou.search(cou_id)
         te_list = cou.teacher_search_all(cou_id, int(cou_year), int(cou_term))
-        for te in te_list:
-            cou.delete_teacher(data['课程号'], te['工号'])
         form_count = int(request.POST.get('form_count'))
         te_list_new = []
         for i in range(form_count):
@@ -313,11 +340,33 @@ def course_update(request: HttpRequest):
             te_list_new.append(te)
         if not checkBool.checkCourse(te_list_new, course_information['学时数']):
             return HttpResponse('error:学时不一致')
+        if not checkBool.checkId(te_list_new):
+            return HttpResponse('error:教师重复')
         try:
-            cou.insert(te_list_new)
+            cou.update_all(data, te_list, te_list_new)
         except Exception as e:
             return HttpResponse(e)
         return HttpResponse('success')
+        # for te in te_list:
+        #     cou.delete_teacher(data['课程号'], te['工号'])
+        # form_count = int(request.POST.get('form_count'))
+        # te_list_new = []
+        # for i in range(form_count):
+        #     te = {
+        #         '工号': data[str(i) + '_id'],
+        #         '课程号': data['课程号'],
+        #         '年份': data['年份'],
+        #         '学期': data['学期'],
+        #         '承担学时': data[str(i) + '_time']
+        #     }
+        #     te_list_new.append(te)
+        # if not checkBool.checkCourse(te_list_new, course_information['学时数']):
+        #     return HttpResponse('error:学时不一致')
+        # try:
+        #     cou.insert(te_list_new)
+        # except Exception as e:
+        #     return HttpResponse(e)
+        # return HttpResponse('success')
     else:
         te_list = cou.teacher_search_all(cou_id, cou_year, cou_term)
         course_information = cou.search(cou_id)
@@ -327,3 +376,42 @@ def course_update(request: HttpRequest):
             'course': course_information,
             'te_list': te_list
         })
+
+
+@csrf_exempt
+def statistics_search(request: HttpRequest):
+    if request.method == 'POST':
+        query = request.POST.get('query')
+        sta = statistics()
+        te = teacher()
+        if 'button1' in request.POST:
+            start = request.POST.get('start')
+            end = request.POST.get('end')
+            error = {}
+            if not (str.isalnum(query)
+                    and len(query) == 5):
+                error['error1'] = 'error:工号格式有误'
+            else:
+                tmp = te.search_id(query)
+                if len(tmp) == 0:
+                    error['error5'] = 'error:该教师不存在'
+                elif re.match("^[0-9]{4}", start) is None:
+                    error['error2'] = 'error:开始年份格式有误'
+                elif re.match("^[0-9]{4}", end) is None:
+                    error['error3'] = 'error:结束年份格式有误'
+                elif int(start) > int(end):
+                    error['error4'] = 'error:年份有误'
+            if len(error) > 0:
+                return render(request, 'statistics.html', error)
+            result = sta.search(query, start, end)
+            result['type'] = 'all'
+            return render(request, 'statistics.html', result)
+        elif 'button2' in request.POST:
+            result = sta.teacher_search(query)
+            data = {'list': result, 'type': 'teacher'}
+            return render(request, 'statistics.html', data)
+        elif 'button3' in request.POST:
+            result = sta.course_search(query)
+            data = {'list': result, 'type': 'course'}
+            return render(request, 'statistics.html', data)
+    return render(request, 'statistics.html')
