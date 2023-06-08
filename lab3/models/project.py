@@ -28,9 +28,9 @@ class project:
         # 项目类型由下拉菜单确定
         elif re.match(r"^[+]?([0-9]+(\.[0-9]+)?|\.[0-9]+)$", data['总经费']) is None:
             raise Exception('error: 总经费格式有问题')
-        elif re.match("^[0-9]{4}$", data['开始年份']) is None:
+        elif re.match("^[1-2][0-9]{3}$", data['开始年份']) is None:
             raise Exception('error:开始年份格式有误')
-        elif re.match("^[0-9]{4}$", data['结束年份']) is None:
+        elif re.match("^[1-2][0-9]{3}$", data['结束年份']) is None:
             raise Exception('error:结束年份格式有误')
         elif int(data['开始年份']) > int(data['结束年份']):
             raise Exception('error:开始时间在结束时间之后')
@@ -38,6 +38,11 @@ class project:
     def insert(self, data: dict, te_list: List[dict]):
         self.check(data)
         cursor = self.db.cursor()
+        sql0 = "select * from 项目 where 项目号='%s'" % data['项目号']
+        cursor.execute(sql0)
+        tmp = cursor.fetchone()
+        if tmp is not None:
+            raise Exception('该项目已经存在')
         sql = "insert into 项目 values('%s','%s','%s',%d,%f,%d,%d)" % \
               (data['项目号'], data['项目名称'], data['项目来源'], int(data['项目类型']), float(data['总经费']),
                int(data['开始年份']),
@@ -60,8 +65,6 @@ class project:
             self.db.commit()
         except Exception as e:
             self.db.rollback()
-            if str(e).find('1062'):
-                raise Exception('error:该项目信息已经存在')
             raise Exception(e)
         cursor.close()
 

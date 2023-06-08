@@ -18,7 +18,7 @@ class statistics:
 
         def result2dict(result):
             if result is None:
-                return {}
+                return []
             return dict(
                 zip([x[0] for x in cursor.description], [x for x in result]))
 
@@ -33,7 +33,37 @@ class statistics:
 
         def result2dict(result):
             if result is None:
-                return {}
+                return []
+            return dict(
+                zip([x[0] for x in cursor.description], [x for x in result]))
+
+        result_list = list(map(result2dict, cursor.fetchall()))
+        cursor.close()
+        return result_list
+
+    def project_search(self, name: string):
+        cursor = self.db.cursor()
+        sql = "select * from 项目 where 项目名称 like '%%%s%%'" % name
+        cursor.execute(sql)
+
+        def result2dict(result):
+            if result is None:
+                return []
+            return dict(
+                zip([x[0] for x in cursor.description], [x for x in result]))
+
+        result_list = list(map(result2dict, cursor.fetchall()))
+        cursor.close()
+        return result_list
+
+    def paper_search(self, name: string):
+        cursor = self.db.cursor()
+        sql = "select * from 论文 where 论文名称 like '%%%s%%'" % name
+        cursor.execute(sql)
+
+        def result2dict(result):
+            if result is None:
+                return []
             return dict(
                 zip([x[0] for x in cursor.description], [x for x in result]))
 
@@ -75,3 +105,64 @@ class statistics:
             'project_list': project_list
         }
         return result
+
+    def teacher_search_id(self, id: string):
+        cursor = self.db.cursor()
+        sql = "select * from 教师 where 工号='%s'" % id
+        cursor.execute(sql)
+        tmp = cursor.fetchone()
+        ans = []
+        if tmp is None:
+            cursor.close()
+            return ans
+        result = dict(
+            zip([x[0] for x in cursor.description],
+                [x for x in tmp]))
+        cursor.close()
+        ans.append(result)
+        return ans
+
+    def course_search_id(self, id: string):
+        cursor = self.db.cursor()
+        sql = "select * from 课程 where 课程号='%s'" % id
+        cursor.execute(sql)
+        ans = []
+        tmp = cursor.fetchone()
+        if tmp is None:
+            return ans
+        result = dict(
+            zip([x[0] for x in cursor.description],
+                [x for x in tmp]))
+        cursor.close()
+        ans.append(result)
+        return ans
+
+    def project_search_id(self, id: string):
+        cursor = self.db.cursor()
+        sql = "select * from 项目 where 项目号='%s'" % id
+        cursor.execute(sql)
+        ans = []
+        tmp = cursor.fetchone()
+        if tmp is None:
+            return ans
+        result = dict(
+            zip([x[0] for x in cursor.description],
+                [x for x in tmp]))
+        cursor.close()
+        ans.append(result)
+        return ans
+
+    def paper_search_id(self, id: string):
+        cursor = self.db.cursor()
+        sql = "select * from 论文 where 序号='%s'" % id
+        cursor.execute(sql)
+        ans = []
+        tmp = cursor.fetchone()
+        if tmp is None:
+            return ans
+        result = dict(
+            zip([x[0] for x in cursor.description],
+                [x for x in tmp]))
+        cursor.close()
+        ans.append(result)
+        return ans

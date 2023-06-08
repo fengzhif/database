@@ -23,7 +23,7 @@ class paper:
             raise Exception('error:论文名称过长')
         elif len(data['发表源']) > 256:
             raise Exception('error:发表源内容过长')
-        elif re.match("^[0-9]{4}$", data['发表年份']) is None:
+        elif re.match("^[1-2][0-9]{3}$", data['发表年份']) is None:
             raise Exception('error:发表年份格式有误')
         # 类型和级别通过下拉菜单确定
 

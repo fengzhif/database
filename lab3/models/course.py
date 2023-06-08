@@ -38,7 +38,7 @@ class course:
                 tmp = cursor.fetchone()
                 if tmp is None:
                     raise Exception('error:第%d教师对应工号不存在，请检查工号输入' % (index + 1))
-                sql = "insert into 主讲课程 values('%s','%s',%d,%d,%d)" % \
+                sql = "insert into 主讲课程(工号,课程号,年份,学期,承担学时) values('%s','%s',%d,%d,%d)" % \
                       (te['工号'], te['课程号'], int(te['年份']), int(te['学期']), int(te['承担学时']))
                 cursor.execute(sql)
             self.db.commit()
@@ -47,18 +47,22 @@ class course:
             raise Exception(e)
         cursor.close()
 
-    def delete(self, cou_id: string, te_id: string, te_time: int):
+    def delete(self, data: dict):
         cursor = self.db.cursor()
-        sql1 = "select * from 课程 where 课程号='%s' " % cou_id
+        sql1 = "select * from 课程 where 课程号='%s' " % data['课程号']
         cursor.execute(sql1)
         result = dict(
             zip([x[0] for x in cursor.description],
                 [x for x in cursor.fetchone()])
         )
-        if result['学时数'] == te_time:
-            sql = "delete from 主讲课程 where 课程号='%s' and 工号='%s'" % (cou_id, te_id)
+        if result['学时数'] == int(data['承担学时']):
+            sql2 = "select 主讲序号 from 主讲课程 where 课程号='%s' and 工号='%s' and 年份=%d and 学期=%d" % \
+                   (data['课程号'], data['工号'], int(data['年份']), int(data['学期']))
+            cursor.execute(sql2)
+            cou_id = cursor.fetchone()
+            sql21 = "delete from 主讲课程 where 主讲序号=%d" % cou_id
             try:
-                cursor.execute(sql)
+                cursor.execute(sql21)
                 self.db.commit()
             except Exception as e:
                 self.db.rollback()
@@ -71,15 +75,19 @@ class course:
         cursor = self.db.cursor()
         try:
             for te in te_list:
-                sql2 = "delete from 主讲课程 where 课程号='%s' and 工号='%s'" % (data['课程号'], te['工号'])
+                sql2 = "select 主讲序号 from 主讲课程 where 课程号='%s' and 工号='%s' and 年份=%d and 学期=%d" % \
+                       (data['课程号'], te['工号'], int(te['年份']), int(te['学期']))
                 cursor.execute(sql2)
+                cou_id = cursor.fetchone()
+                sql21 = "delete from 主讲课程 where 主讲序号=%d" % cou_id
+                cursor.execute(sql21)
             for index, te in enumerate(te_list_new):
                 sql0 = "select * from 教师 where 工号='%s'" % te['工号']
                 cursor.execute(sql0)
                 tmp = cursor.fetchone()
                 if tmp is None:
                     raise Exception('error:第%d教师对应工号不存在，请检查工号输入' % (index + 1))
-                sql3 = "insert into 主讲课程 values('%s','%s',%d,%d,%d)" % \
+                sql3 = "insert into 主讲课程(工号,课程号,年份,学期,承担学时) values('%s','%s',%d,%d,%d)" % \
                        (te['工号'], te['课程号'], int(te['年份']), int(te['学期']), int(te['承担学时']))
                 cursor.execute(sql3)
             self.db.commit()

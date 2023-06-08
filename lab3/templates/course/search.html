@@ -133,7 +133,7 @@
                     </form>
                     &nbsp&nbsp
                     <form>
-                        <button type="button" onclick="delet('{{course.课程号}}','{{teacher.工号}}','{{course.承担学时}}')"
+                        <button type="button" onclick="delet('{{course.课程号}}','{{teacher.工号}}','{{course.承担学时}}','{{course.年份}}','{{course.学期}}')"
                                 class="btn btn-danger btn-sm">
                             删除
                         </button>
@@ -168,7 +168,7 @@
 </div>
 
 <script type="text/javascript">
-    function delet(course_id,te_id,te_time){
+    function delet(course_id,te_id,te_time,cou_year,cou_term){
       $.ajax({
         type: 'POST',
         url: '/course/search/',
@@ -176,7 +176,9 @@
           'csrfmiddlewaretoken': '{{ csrf_token }}',
           '课程号': course_id,
           '工号': te_id,
-          '承担学时':te_time
+          '承担学时':te_time,
+          '年份':cou_year,
+          '学期':cou_term
         },
         success: function (result) {
           $('#modal-body').text(result);

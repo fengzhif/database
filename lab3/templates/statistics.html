@@ -44,6 +44,39 @@
     width: 200px; /* 设置固定的宽度 */
     white-space: nowrap;
   }
+.dropdown-menu {
+  min-width: auto;
+  padding: 0;
+  border: none;
+  box-shadow: 0 0 5px rgba(0, 0, 0, 0.2);
+  background-color: #f8f9fa;
+}
+
+.dropdown-menu li {
+  padding: 8px 12px;
+}
+
+.dropdown-menu li:hover {
+  background-color: #e9ecef;
+}
+
+.dropdown-menu li button[type="submit"] {
+  background-color: transparent;
+  border: none;
+  color: #333;
+  cursor: pointer;
+}
+
+.dropdown-menu li input[type="submit"]:hover {
+  color: #000;
+  text-decoration: underline;
+}
+
+
+
+
+
+
 
 
 
@@ -80,11 +113,50 @@
     <form class="form-inline" method="post">
         {% csrf_token %}
         <div class="form-group">
-            <input type="text" name="query" class="form-control" placeholder="教师工号/姓名/课程名" value="{{error1}}{{error5}}">
+            <input type="text" name="query" class="form-control" placeholder="教师工号/姓名/课程名"
+                   value="{{error1}}{{error5}}">
             &nbsp;&nbsp;&nbsp;
-            <input type="submit" name="button2" value="教师查询" class="btn btn-primary">
+            <div class="btn-group">
+                <button type="button" class="btn btn-primary dropdown-toggle" data-toggle="dropdown"
+                        aria-haspopup="true"
+                        aria-expanded="false">关键字查询<span class="caret"></span>
+                </button>
+                <ul class="dropdown-menu">
+                    <li>
+                        <button type="submit" name="button" value="2">教师查询</button>
+                    </li>
+                    <li>
+                        <button type="submit" name="button" value="3">课程查询</button>
+                    </li>
+                    <li>
+                        <button type="submit" name="button" value="4">项目查询</button>
+                    </li>
+                    <li>
+                        <button type="submit" name="button" value="5">论文查询</button>
+                    </li>
+                </ul>
+            </div>
             &nbsp;&nbsp;
-            <input type="submit" name="button3" value="课程查询" class="btn btn-primary">
+            <div class="btn-group">
+                <button type="button" class="btn btn-primary dropdown-toggle" data-toggle="dropdown"
+                        aria-haspopup="true"
+                        aria-expanded="false">精确查询<span class="caret"></span>
+                </button>
+                <ul class="dropdown-menu">
+                    <li>
+                        <button type="submit" name="button" value="6">教师查询</button>
+                    </li>
+                    <li>
+                        <button type="submit" name="button" value="7">课程查询</button>
+                    </li>
+                    <li>
+                        <button type="submit" name="button" value="8">项目查询</button>
+                    </li>
+                    <li>
+                        <button type="submit" name="button" value="9">论文查询</button>
+                    </li>
+                </ul>
+            </div>
             &nbsp;&nbsp;
             <input type="text" name="start" class="form-control" placeholder="开始年份" value="{{error2}}{{error4}}">
             &nbsp;&nbsp;
@@ -95,11 +167,15 @@
             <a href="/index">
                 <button type="button" class="btn btn-secondary">返回</button>
             </a>
+
         </div>
     </form>
     <br>
     <div>
         {% if type == 'teacher' %}
+            {% if flag == 0 %}
+            <h5 style="font-weight:bold;">该教师不存在，请检查输入</h5>
+            {% else %}
         {% for teacher in list %}
         <div class="custom-border">
             <p style="margin-top:9px;margin-bottom:9px">
@@ -123,7 +199,11 @@
             </p>
         </div>
         {% endfor %}
+            {% endif %}
         {% elif type == 'course' %}
+            {% if flag == 0 %}
+            <h5 style="font-weight:bold;">该课程不存在，请检查输入</h5>
+            {% else %}
         {% for course in list %}
         <div class="custom-border">
             <p style="margin-top:9px;margin-bottom:9px">
@@ -134,7 +214,46 @@
             </p>
         </div>
         {% endfor %}
+            {% endif %}
+        {% elif type == 'project' %}
+            {% if flag == 0 %}
+            <h5 style="font-weight:bold;">该项目不存在，请检查输入</h5>
+            {% else %}
+        {% for project in list %}
+        <div class="custom-border">
+            <p style="margin-top:9px;margin-bottom:9px">
+            {{project.项目号}}:&nbsp;&nbsp;{{project.项目名称}},&nbsp;{{project.项目来源}},&nbsp;
+            {% if project.项目类型 == 1 %}国家级项目,&nbsp;
+            {% elif project.项目类型 == 2 %}省部级项目,&nbsp;
+            {% elif project.项目类型 == 3 %}市厅级项目,&nbsp;
+            {% elif project.项目类型 == 4 %}企业合作项目,&nbsp;
+            {% elif project.项目类型 == 5 %}其他类型项目,&nbsp;
+            {% endif %}
+            {{project.开始年份}}-{{project.结束年份}},&nbsp;总经费:&nbsp;{{project.总经费}}
+        </p>
+        </div>
+        {% endfor %}
+            {% endif %}
+        {% elif type == 'paper' %}
+            {% if flag == 0 %}
+            <h5 style="font-weight:bold;">该论文不存在，请检查输入</h5>
+            {% else %}
+        {% for paper in list %}
+        <div class="custom-border">
+            <p style="margin-top:9px;margin-bottom:9px">
+            {{paper.序号}}:&nbsp;&nbsp;{{paper.论文名称}},&nbsp;{{paper.发表源}},&nbsp;{{paper.发表年份}},
+            {% if paper.级别 == 1 %}CCF-A,&nbsp;
+            {% elif paper.级别 == 2 %}CCF-B,&nbsp;
+            {% elif paper.级别 == 3 %}CCF-C,&nbsp;
+            {% elif paper.级别 == 4 %}中文CCF-A,&nbsp;
+            {% elif paper.级别 == 5 %}中文CCF-B,&nbsp;
+            {% endif %}
+        </p>
+        </div>
+        {% endfor %}
+            {% endif %}
         {% elif type == 'all' %}
+        <h4 style="font-weight:bold;">{{teacher.姓名}}&nbsp;{{start}}-{{end}}&nbsp;年度的工作情况</h4>
         <h5 style="font-weight:bold;">教师基本信息</h5>
         <hr style="border-top: 2px solid ;">
         <p style="margin-top:9px;margin-bottom:9px">
@@ -203,6 +322,6 @@
     </div>
 
     <div class="bottom-center"><p class="mt-5 mb-3 text-muted">zxy&copy; 2023</p></div>
-
+    <script>$('.dropdown-toggle').dropdown()</script>
 </body>
 </html>

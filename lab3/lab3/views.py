@@ -1,10 +1,12 @@
 from django.http import HttpRequest, HttpResponse
+from django.http import FileResponse
 from django.shortcuts import render
 from django.contrib import messages
 from django.urls import reverse
 from django.views.decorators.csrf import csrf_exempt
 from django import forms
 import re
+import pdfkit
 
 from models.paper import paper
 from models.teacher import teacher
@@ -148,6 +150,7 @@ def project_insert(request: HttpRequest):
     if request.method == 'POST':
         form_count = int(request.POST.get('form_count'))
         data = request.POST.dict()
+        pro = project()
         pro_information = {
             '项目号': data['项目号'],
             '项目名称': data['项目名称'],
@@ -157,6 +160,9 @@ def project_insert(request: HttpRequest):
             '开始年份': data['开始年份'],
             '结束年份': data['结束年份']
         }
+        tmp = pro.search(data['项目号'])
+        if len(tmp) > 0:
+            return HttpResponse('error:该项目号已经存在')
         te_list = []
         for i in range(form_count):
             te = {
@@ -171,7 +177,6 @@ def project_insert(request: HttpRequest):
             return HttpResponse('error:经费不一致')
         if not checkBool.checkId(te_list):
             return HttpResponse('error:教师重复')
-        pro = project()
         try:
             pro.insert(pro_information, te_list)
         except Exception as e:
@@ -274,11 +279,9 @@ def course_search(request: HttpRequest):
             'course_list': course_list
         })
     if request.method == 'POST':
-        cou_id = request.POST.dict()['课程号']
-        te_id = request.POST.dict()['工号']
-        te_time = request.POST.dict()['承担学时']
+        data = request.POST.dict()
         try:
-            cou.delete(cou_id, te_id, int(te_time))
+            cou.delete(data)
         except Exception as e:
             return HttpResponse(e)
         return HttpResponse('success')
@@ -290,7 +293,7 @@ def course_insert(request: HttpRequest):
         form_count = int(request.POST.get('form_count'))
         data = request.POST.dict()
         cou = course()
-        if re.match("^[0-9]{4}$", data['年份']) is None:
+        if re.match("^[1-2][0-9]{3}$", data['年份']) is None:
             return HttpResponse('error:年份格式有误')
         course_information = cou.search(data['课程号'])
         if len(course_information) == 0:
@@ -325,6 +328,8 @@ def course_update(request: HttpRequest):
     if request.method == 'POST':
         data = request.POST.dict()
         data['课程号'] = cou_id
+        if re.match("^[1-2][0-9]{3}$", data['年份']) is None:
+            return HttpResponse('error:年份格式有误')
         course_information = cou.search(cou_id)
         te_list = cou.teacher_search_all(cou_id, int(cou_year), int(cou_term))
         form_count = int(request.POST.get('form_count'))
@@ -382,6 +387,7 @@ def course_update(request: HttpRequest):
 def statistics_search(request: HttpRequest):
     if request.method == 'POST':
         query = request.POST.get('query')
+        button = request.POST.get('button')
         sta = statistics()
         te = teacher()
         if 'button1' in request.POST:
@@ -395,9 +401,9 @@ def statistics_search(request: HttpRequest):
                 tmp = te.search_id(query)
                 if len(tmp) == 0:
                     error['error5'] = 'error:该教师不存在'
-                elif re.match("^[0-9]{4}", start) is None:
+                elif re.match("^[1-2][0-9]{3}", start) is None:
                     error['error2'] = 'error:开始年份格式有误'
-                elif re.match("^[0-9]{4}", end) is None:
+                elif re.match("^[1-2][0-9]{3}", end) is None:
                     error['error3'] = 'error:结束年份格式有误'
                 elif int(start) > int(end):
                     error['error4'] = 'error:年份有误'
@@ -405,13 +411,39 @@ def statistics_search(request: HttpRequest):
                 return render(request, 'statistics.html', error)
             result = sta.search(query, start, end)
             result['type'] = 'all'
+            result['start'] = start
+            result['end'] = end
             return render(request, 'statistics.html', result)
-        elif 'button2' in request.POST:
+        elif button == '2':
             result = sta.teacher_search(query)
-            data = {'list': result, 'type': 'teacher'}
+            data = {'list': result, 'type': 'teacher', 'flag': len(result)}
             return render(request, 'statistics.html', data)
-        elif 'button3' in request.POST:
+        elif button == '3':
             result = sta.course_search(query)
-            data = {'list': result, 'type': 'course'}
+            data = {'list': result, 'type': 'course', 'flag': len(result)}
+            return render(request, 'statistics.html', data)
+        elif button == '4':
+            result = sta.project_search(query)
+            data = {'list': result, 'type': 'project', 'flag': len(result)}
+            return render(request, 'statistics.html', data)
+        elif button == '5':
+            result = sta.paper_search(query)
+            data = {'list': result, 'type': 'paper', 'flag': len(result)}
+            return render(request, 'statistics.html', data)
+        elif button == '6':
+            result = sta.teacher_search_id(query)
+            data = {'list': result, 'type': 'teacher', 'flag': len(result)}
+            return render(request, 'statistics.html', data)
+        elif button == '7':
+            result = sta.course_search_id(query)
+            data = {'list': result, 'type': 'course', 'flag': len(result)}
+            return render(request, 'statistics.html', data)
+        elif button == '8':
+            result = sta.project_search_id(query)
+            data = {'list': result, 'type': 'project', 'flag': len(result)}
+            return render(request, 'statistics.html', data)
+        elif button == '9':
+            result = sta.paper_search_id(query)
+            data = {'list': result, 'type': 'paper', 'flag': len(result)}
             return render(request, 'statistics.html', data)
     return render(request, 'statistics.html')
