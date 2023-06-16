@@ -49,12 +49,12 @@ class project:
                int(data['结束年份']))
         try:
             cursor.execute(sql)
-            for te in te_list:
+            for index, te in enumerate(te_list):
                 sql1 = "select * from 教师 where 工号='%s'" % te['工号']
                 cursor.execute(sql1)
                 result = cursor.fetchone()
                 if result is None:
-                    raise Exception('error:该工号不存在，请输入正确工号')
+                    raise Exception('error:第%d教师对应工号不存在，请输入正确工号' % (index + 1))
                 if not te['排名'].isdigit():
                     raise Exception('error:排名需为数字')
                 if re.match(r"^[+]?([0-9]+(\.[0-9]+)?|\.[0-9]+)$", te['承担经费']) is None:
@@ -90,6 +90,19 @@ class project:
                 raise Exception(e)
         else:
             raise Exception('error:该教师不是项目的唯一负责人，直接删除会导致经费不一致，请通过“查看&修改”完成教师的删除')
+        cursor.close()
+
+    def delete_all(self, pro_id: string):
+        sql = "delete from 承担项目 where 项目号='%s'" % pro_id
+        sql1 = "delete from 项目 where 项目号='%s'" % pro_id
+        cursor = self.db.cursor()
+        try:
+            cursor.execute(sql)
+            cursor.execute(sql1)
+            self.db.commit()
+        except Exception as e:
+            self.db.rollback()
+            raise Exception(e)
         cursor.close()
 
     def update(self, data: dict):

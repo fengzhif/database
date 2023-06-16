@@ -1,12 +1,14 @@
 from django.http import HttpRequest, HttpResponse
 from django.http import FileResponse
-from django.shortcuts import render
-from django.contrib import messages
+from django.shortcuts import render, redirect
+from django.contrib import messages, auth
+from django.contrib.auth.models import User
 from django.urls import reverse
 from django.views.decorators.csrf import csrf_exempt
 from django import forms
 import re
-import pdfkit
+
+
 
 from models.paper import paper
 from models.teacher import teacher
@@ -20,9 +22,22 @@ from . import checkBool
 def signin(request: HttpRequest):
     if request.method == 'POST':
         data = request.POST.dict()
-        if data['user'] == 'lab3' and data['password'] == 'zhang':
+        username = data['username']
+        password = data['password']
+        user = auth.authenticate(username=username, password=password)
+        if user:
+            auth.login(request, user)
             return render(request, 'index.html')
-    return render(request, 'signin.html')
+        else:
+            error = '用户名或密码错误'
+    else:
+        error = ''
+    return render(request, 'signin.html', {'error': error})
+
+
+def logout(request: HttpRequest):
+    auth.logout(request)
+    return redirect('/signin')
 
 
 def index(request: HttpRequest):
@@ -66,7 +81,7 @@ def paper_search(request: HttpRequest):
 
 
 @csrf_exempt
-def paper_insert(request: HttpRequest):
+def paper_insert_0(request: HttpRequest):
     if request.method == 'POST':
         pa = paper()
         data = request.POST.dict()
@@ -78,8 +93,46 @@ def paper_insert(request: HttpRequest):
     return render(request, 'paper/insert.html')
 
 
+def paper_insert(request: HttpRequest):
+    if request.method == 'POST':
+        form_count = int(request.POST.get('form_count'))
+        data = request.POST.dict()
+        pa = paper()
+        paper_information = {
+            '序号': data['序号'],
+            '论文名称': data['论文名称'],
+            '发表源': data['发表源'],
+            '发表年份': data['发表年份'],
+            '类型': data['类型'],
+            '级别': data['级别']
+        }
+        tmp = pa.search(data['序号'])
+        if len(tmp) > 0:
+            return HttpResponse('error:该论文序号已经存在')
+        te_list = []
+        for i in range(form_count):
+            te = {
+                '工号': data[str(i) + '_id'],
+                '排名': data[str(i) + '_rank'],
+                '是否通讯作者': data[str(i) + '_author']
+            }
+            te_list.append(te)
+        if not checkBool.checkSequence(te_list):
+            return HttpResponse('error:教师排名重复')
+        if not checkBool.checkAuthor(te_list):
+            return HttpResponse('error:通讯作者必须有且只有一个')
+        if not checkBool.checkId(te_list):
+            return HttpResponse('error:教师重复')
+        try:
+            pa.insert(paper_information, te_list)
+        except Exception as e:
+            return HttpResponse(e)
+        return HttpResponse('success')
+    return render(request, 'paper/insert.html')
+
+
 @csrf_exempt
-def paper_update(request: HttpRequest):
+def paper_update_0(request: HttpRequest):
     pa = paper()
     tea = teacher()
     paper_id = request.path[7:12]
@@ -102,6 +155,43 @@ def paper_update(request: HttpRequest):
         data['是否通讯作者'] = te['是否通讯作者']
         data['姓名'] = te_['姓名']
         return render(request, 'paper/update.html', data)
+
+
+def paper_update(request: HttpRequest):
+    pa = paper()
+    paper_id = request.path[7:12]
+    if request.method == 'POST':
+        data = request.POST.dict()
+        data['序号'] = paper_id
+        te_list = pa.teacher_search_all(data['序号'])
+        form_count = int(request.POST.get('form_count'))
+        te_list_new = []
+        for i in range(form_count):
+            te = {
+                '工号': data[str(i) + '_id'],
+                '排名': data[str(i) + '_rank'],
+                '是否通讯作者': data[str(i) + '_author']
+            }
+            te_list_new.append(te)
+        if not checkBool.checkSequence(te_list_new):
+            return HttpResponse('error:教师排名重复')
+        if not checkBool.checkAuthor(te_list_new):
+            return HttpResponse('error:通讯作者必须有且只有一个')
+        if not checkBool.checkId(te_list_new):
+            return HttpResponse('error:教师重复')
+        # 所有更新删除插入操作置于同一事务
+        try:
+            pa.update_all(data, te_list, te_list_new)
+        except Exception as e:
+            return HttpResponse(e)
+        return HttpResponse('success')
+    else:
+        te_list = pa.teacher_search_all(paper_id)
+        paper_information = pa.search(paper_id)
+        return render(request, 'paper/update.html', {
+            'paper': paper_information,
+            'te_list': te_list
+        })
 
 
 class projectForm(forms.Form):
@@ -436,14 +526,70 @@ def statistics_search(request: HttpRequest):
             return render(request, 'statistics.html', data)
         elif button == '7':
             result = sta.course_search_id(query)
-            data = {'list': result, 'type': 'course', 'flag': len(result)}
+            cou = course()
+            te_list = cou.teacher_search(query)
+            data = {'list': result, 'te_list': te_list, 'type': 'course_id', 'flag': len(result)}
             return render(request, 'statistics.html', data)
         elif button == '8':
             result = sta.project_search_id(query)
-            data = {'list': result, 'type': 'project', 'flag': len(result)}
+            pro = project()
+            te_list = pro.teacher_search_all(query)
+            data = {'list': result, 'te_list': te_list, 'type': 'project_id', 'flag': len(result)}
             return render(request, 'statistics.html', data)
         elif button == '9':
             result = sta.paper_search_id(query)
-            data = {'list': result, 'type': 'paper', 'flag': len(result)}
+            pa = paper()
+            te_list = pa.teacher_search_all(query)
+            data = {'list': result, 'te_list': te_list, 'type': 'paper_id', 'flag': len(result)}
             return render(request, 'statistics.html', data)
+        elif 'course_delete' in request.POST:
+            cou = course()
+            data = request.POST.dict()
+            try:
+                cou.delete(data)
+            except Exception as e:
+                return HttpResponse(e)
+            return HttpResponse('success')
+        elif 'course_delete_all' in request.POST:
+            cou = course()
+            data = request.POST.dict()
+            try:
+                cou.delete_all(data['课程号'])
+            except Exception as e:
+                return HttpResponse(e)
+            return HttpResponse('success')
+        elif 'paper_delete' in request.POST:
+            pa = paper()
+            data = request.POST.dict()
+            try:
+                pa.delete(data['序号'], data['工号'])
+            except Exception as e:
+                return HttpResponse(e)
+            return HttpResponse('success')
+        elif 'paper_delete_all' in request.POST:
+            pa = paper()
+            data = request.POST.dict()
+            try:
+                pa.delete_all(data['序号'])
+            except Exception as e:
+                return HttpResponse(e)
+            return HttpResponse('success')
+        elif 'project_delete' in request.POST:
+            pro = project()
+            data = request.POST.dict()
+            try:
+                pro.delete(data['项目号'], data['工号'])
+            except Exception as e:
+                return HttpResponse(e)
+            return HttpResponse('success')
+        elif 'project_delete_all' in request.POST:
+            pro = project()
+            data = request.POST.dict()
+            try:
+                pro.delete_all(data['项目号'])
+            except Exception as e:
+                return HttpResponse(e)
+            return HttpResponse('success')
     return render(request, 'statistics.html')
+
+

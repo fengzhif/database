@@ -32,6 +32,12 @@ class course:
     def insert(self, te_list: List[dict]):
         cursor = self.db.cursor()
         try:
+            sql00 = "select * from 主讲课程 where 课程号='%s' and 年份=%d and 学期=%d " % \
+                    (te_list[0]['课程号'], int(te_list[0]['年份']), int(te_list[0]['学期']))
+            cursor.execute(sql00)
+            tmp = cursor.fetchone()
+            if tmp is not None:
+                raise Exception('error:该学期的课程记录已存在')
             for index, te in enumerate(te_list):
                 sql0 = "select * from 教师 where 工号='%s'" % te['工号']
                 cursor.execute(sql0)
@@ -60,7 +66,7 @@ class course:
                    (data['课程号'], data['工号'], int(data['年份']), int(data['学期']))
             cursor.execute(sql2)
             cou_id = cursor.fetchone()
-            sql21 = "delete from 主讲课程 where 主讲序号=%d" % cou_id
+            sql21 = "delete from 主讲课程 where 主讲序号=%d" % cou_id[0]
             try:
                 cursor.execute(sql21)
                 self.db.commit()
@@ -129,6 +135,19 @@ class course:
         cursor.close()
         return result_list
 
+    def teacher_search(self, cou_id: string):
+        sql = "select * from 主讲课程 where 课程号='%s' " % cou_id
+        cursor = self.db.cursor()
+        cursor.execute(sql)
+
+        def result2dict(result):
+            return dict(
+                zip([x[0] for x in cursor.description], [x for x in result]))
+
+        result_list = list(map(result2dict, cursor.fetchall()))
+        cursor.close()
+        return result_list
+
     def delete_teacher(self, cou_id: string, te_id: string):
         sql = "delete from 主讲课程 where 课程号='%s' and 工号='%s'" % (cou_id, te_id)
         cursor = self.db.cursor()
@@ -139,3 +158,15 @@ class course:
             self.db.rollback()
             raise Exception(e)
         cursor.close()
+
+    def delete_all(self, cou_id: string):
+        sql = "delete from 主讲课程 where 课程号='%s'" % cou_id
+        cursor = self.db.cursor()
+        try:
+            cursor.execute(sql)
+            self.db.commit()
+        except Exception as e:
+            self.db.rollback()
+            raise Exception(e)
+        cursor.close()
+

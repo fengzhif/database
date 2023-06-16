@@ -21,11 +21,13 @@ from . import views
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('', views.signin),
+    path('signin/', views.signin),
+    path('logout/', views.logout),
     path('index/', views.index),
     # paper
     path('paper/search/', views.paper_search),
     path('paper/insert', views.paper_insert),
-    re_path(r'^paper/[A-Z0-9]{10}/update/$', views.paper_update),
+    re_path(r'^paper/[a-zA-Z0-9]{10}/update/$', views.paper_update),
     # project
     path('project/search/', views.project_search),
     path('project/insert', views.project_insert),
@@ -35,5 +37,5 @@ urlpatterns = [
     path('course/insert', views.course_insert),
     re_path(r'^course/[a-zA-Z0-9]{10}/update$', views.course_update),
     # statistics
-    path('statistics/', views.statistics_search)
+    path('statistics/', views.statistics_search),
 ]

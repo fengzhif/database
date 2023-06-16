@@ -8,6 +8,13 @@ def checkSequence(data):
     return True
 
 
+def checkAuthor(data):
+    cnt = 0
+    for te_dict in data:
+        cnt = cnt + int(te_dict['是否通讯作者'])
+    return cnt == 1
+
+
 def checkBunds(data, goal):
     cnt = 0.0
     for te_dict in data:
@@ -23,6 +30,7 @@ def checkId(data):
             return False
         values.add(value)
     return True
+
 
 def checkCourse(data, goal):
     cnt = 0

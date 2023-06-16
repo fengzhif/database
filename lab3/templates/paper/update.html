@@ -27,6 +27,7 @@
       transform: translateX(-50%);
       text-align: center;
     }
+
     </style>
 </head>
 <body>
@@ -52,87 +53,62 @@
             </li>
         </ul>
     </div>
+        <div class="dropdown">
+        <button class="btn dropdown-toggle" type="button" id="userDropdown" data-toggle="dropdown"
+                aria-haspopup="true" aria-expanded="false">
+            {{ request.user.username }}
+        </button>
+        <div class="dropdown-menu dropdown-menu-right" aria-labelledby="userDropdown">
+            <a class="dropdown-item" href="/logout">注销</a>
+        </div>
+    </div>
 </nav>
 <div class="container">
     <br>
     <h1>修改论文信息</h1><br>
     <form action="" method="post" id="form1">
         {% csrf_token %}
-        <h3>教师信息</h3>
-        <div class="form-group">
-            <div class="row">
-                <div class="col-md-6">
-                    <label>工号</label>
-                    <input type="text" name="工号" class="form-control" value="{{工号}}" disabled>
-                </div>
-                <div class="col-md-6">
-                    <label>姓名</label>
-                    <input type="text" name="姓名" class="form-control" value="{{姓名}}" disabled>
-                </div>
-            </div>
-            <div class="row">
-                <div class="col-md-6">
-                    <label>排名</label>
-                    <input type="number" name="排名" class="form-control" value="{{排名}}">
-                </div>
-                <div class="col-md-6">
-                    <label>是否通讯作者</label>
-                    <select name="是否通讯作者" class="form-control" >
-                        {% if 是否通讯作者 == 0 %}
-                        <option value="0" selected>不是</option>
-                        {% else %}
-                        <option value="0">不是</option>
-                        {% endif %}
-                        {% if 是否通讯作者 == 1 %}
-                        <option value="1" selected>是</option>
-                        {% else %}
-                        <option value="1">是</option>
-                        {% endif %}
-                    </select>
-                </div>
-            </div>
-        </div>
         <h3>论文信息</h3>
         <div class="form-group">
             <div class="row">
                 <div class="col-md-6">
                     <label>论文名称</label>
-                    <input type="text" name="论文名称" class="form-control" value="{{论文名称}}">
+                    <input type="text" name="论文名称" class="form-control" value="{{paper.论文名称}}">
                 </div>
                 <div class="col-md-6">
                     <label>论文序号</label>
-                    <input type="text" name="序号" class="form-control" value="{{序号}}" disabled>
+                    <input type="text" name="序号" class="form-control" value="{{paper.序号}}" disabled>
                 </div>
             </div>
             <div class="row">
                 <div class="col-md-6">
                     <label>发表源</label>
-                    <input type="text" name="发表源" class="form-control" value="{{发表源}}">
+                    <input type="text" name="发表源" class="form-control" value="{{paper.发表源}}">
                 </div>
                 <div class="col-md-6">
                     <label>发表年份</label>
-                    <input type="text" name="发表年份" class="form-control" value="{{发表年份}}">
+                    <input type="text" name="发表年份" class="form-control" value="{{paper.发表年份}}">
                 </div>
 
                 <div class="col-md-6">
                     <label>论文类型</label>
                     <select name="类型" class="form-control">
-                        {% if 类型 == 1 %}
+                        {% if paper.类型 == 1 %}
                         <option value="1" selected>full paper</option>
                         {% else %}
                         <option value="1">full paper</option>
                         {% endif %}
-                        {% if 类型 == 2 %}
+                        {% if paper.类型 == 2 %}
                         <option value="2" selected>short paper</option>
                         {% else %}
                         <option value="2">short paper</option>
                         {% endif %}
-                        {% if 类型 == 3 %}
+                        {% if paper.类型 == 3 %}
                         <option value="3" selected>poster paper</option>
                         {% else %}
-                        <option value="3" >poster paper</option>
+                        <option value="3">poster paper</option>
                         {% endif %}
-                        {% if 类型 == 4 %}
+                        {% if paper.类型 == 4 %}
                         <option value="4" selected>demo paper</option>
                         {% else %}
                         <option value="4">demo paper</option>
@@ -142,32 +118,32 @@
                 <div class="col-md-6">
                     <label>论文级别</label>
                     <select name="级别" class="form-control">
-                        {% if 级别 == 1 %}
+                        {% if paper.级别 == 1 %}
                         <option value="1" selected>CCF-A</option>
                         {% else %}
-                        <option value="1" >CCF-A</option>
+                        <option value="1">CCF-A</option>
                         {% endif %}
-                        {% if 级别 == 2 %}
+                        {% if paper.级别 == 2 %}
                         <option value="2" selected>CCF-B</option>
                         {% else %}
                         <option value="2">CCF-B</option>
                         {% endif %}
-                        {% if 级别 == 3 %}
+                        {% if paper.级别 == 3 %}
                         <option value="3" selected>CCF-C</option>
                         {% else %}
                         <option value="3">CCF-C</option>
                         {% endif %}
-                        {% if 级别 == 4 %}
+                        {% if paper.级别 == 4 %}
                         <option value="4" selected>中文CCF-A</option>
                         {% else %}
                         <option value="4">中文CCF-A</option>
                         {% endif %}
-                        {% if 级别 == 5 %}
+                        {% if paper.级别 == 5 %}
                         <option value="5" selected>中文CCF-B</option>
                         {% else %}
                         <option value="5">中文CCF-B</option>
                         {% endif %}
-                        {% if 级别 == 6 %}
+                        {% if paper.级别 == 6 %}
                         <option value="6" selected>无级别</option>
                         {% else %}
                         <option value="6">无级别</option>
@@ -177,6 +153,54 @@
             </div>
         </div>
         <br>
+        <br>
+        <h3>教师信息-旧值</h3>
+        <table class="table table-hover table-striped">
+            <thead>
+            <tr>
+                <td>工号</td>
+                <td>排名</td>
+                <td>是否通讯作者</td>
+            </tr>
+            </thead>
+            <tbody>
+            {% for te in te_list %}
+            <tr>
+                <td>{{te.工号}}</td>
+                <td>{{te.排名}}</td>
+                {% if te.是否通讯作者 == 1 %}
+                <td>通讯作者</td>
+                {% else %}
+                <td></td>
+                {% endif %}
+            </tr>
+            {% endfor %}
+            </tbody>
+        </table>
+        <h3>教师信息-新值(必填）</h3>
+        <div class="form-group">
+            <div id="teachers-container">
+                <div class="teacher-form">
+                    <div class="row">
+                        <div class="col-md-3"><input type="text" name="0_id" placeholder="工号:xxxxx" required
+                                                     class="form-control"></div>
+                        <div class="col-md-3"><input type="number" name="0_rank" placeholder="排名:数字" required
+                                                     class="form-control"></div>
+                        <div class="col-md-3">
+                            <select name="0_author" class="form-control">
+                                <option value="1">是通讯作者</option>
+                                <option value="0">不是通讯作者</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <input type="hidden" id="form-count-field" name="form_count" value="">
+            <br>
+            <!-- 添加/删除教师按钮 -->
+            <button type="button" id="add-teacher" class="btn btn-primary">添加教师</button>
+            <button type="button" id="remove-teacher" class="btn btn-primary">删除教师</button>
+        </div>
         <div class="col-md-3 offset-md-10">
             <button type="button" id="btn-submit" class="btn btn-primary">提交修改</button>
             <a href="/paper/search">
@@ -218,6 +242,46 @@
         },
       });
     });
+
+</script>
+<script>
+  $(document).ready(function() {
+    // 获取教师信息容器和添加/删除按钮
+    var teachersContainer = $('.teacher-form');
+    var addTeacherButton = $('#add-teacher');
+    var removeTeacherButton = $('#remove-teacher');
+    var formCountField = $('#form-count-field');
+    // 设置初始表单项数量
+    formCountField.val(teachersContainer.length);
+    // 点击添加按钮时，在表单集合中添加新的表单项
+    addTeacherButton.click(function() {
+      var formCount = teachersContainer.length;
+      var newFormHtml = `
+                <div class="teacher-form">
+                    <div class="row">
+                    <div class="col-md-3"><input type="text" name="${formCount}_id" placeholder="工号:xxxxx" required class="form-control"></div>
+                    <div class="col-md-3"><input type="number" name="${formCount}_rank" placeholder="排名:数字" required class="form-control"></div>
+                    <div class="col-md-3"><select name="${formCount}_author" class="form-control">
+                        <option value="1">是通讯作者</option>
+                        <option value="0">不是通讯作者</option></div>
+                    </div>
+                </div>
+      `;
+      teachersContainer.parent().append(newFormHtml);
+      teachersContainer = $('.teacher-form');
+      formCountField.val(teachersContainer.length);
+    });
+
+    // 点击删除按钮时，移除最后一个表单项
+    removeTeacherButton.click(function() {
+      var formCount = teachersContainer.length;
+      if (formCount > 1) {
+        teachersContainer.last().remove();
+        teachersContainer = $('.teacher-form');
+        formCountField.val(teachersContainer.length);
+      }
+    });
+  });
 </script>
 <div class="bottom-center"><p class="mt-5 mb-3 text-muted">zxy&copy; 2023</p></div>
 
